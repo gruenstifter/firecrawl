@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  firecrawl-api:
+    build: 
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      - REDIS_URL=redis://dragonfly:6379
+      - PLAYWRIGHT_MICROSERVICE_URL=http://playwright-service:3000/html
+    networks:
+      - coolify
+
+  playwright-service:
+    build: apps/playwright-service-ts
+    networks:
+      - coolify
+
+networks:
+  coolify:
+    external: true
