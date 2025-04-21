@@ -1,4 +1,4 @@
-# Use full Node image with build tools
+# apps/api/Dockerfile-coolify
 FROM node:22 AS base
 
 ENV PNPM_HOME="/pnpm"
@@ -16,25 +16,12 @@ RUN apt-get update && \
 RUN corepack enable
 WORKDIR /app
 
-# Clone repo with submodules (critical for sharedLibs)
+# Clone repo with submodules
 RUN git clone --recurse-submodules https://github.com/mendableai/firecrawl .
-
-# Go build stage
-FROM golang:1.24 AS go-builder
-COPY --from=base /app/apps/api/sharedLibs/go-html-to-md /app/sharedLibs/go-html-to-md
-WORKDIR /app/sharedLibs/go-html-to-md
-RUN go mod tidy && \
-    go build -o html-to-markdown.so -buildmode=c-shared html-to-markdown.go
-
-# Rust build stage
-FROM rust:1-slim AS rust-builder
-COPY --from=base /app/apps/api/sharedLibs/html-transformer /app/sharedLibs/html-transformer
-WORKDIR /app/sharedLibs/html-transformer
-RUN cargo build --release
 
 # Main build stage
 FROM base AS build
-WORKDIR /app/apps/api  # Critical change - navigate to package root
+WORKDIR /app/apps/api  # Critical fix
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install && \
     pnpm run build
