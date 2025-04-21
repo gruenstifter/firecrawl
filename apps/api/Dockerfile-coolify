@@ -1,4 +1,5 @@
 # apps/api/Dockerfile-coolify
+# Stage 1: Base with build tools
 FROM node:22 AS base
 
 ENV PNPM_HOME="/pnpm"
@@ -19,14 +20,27 @@ WORKDIR /app
 # Clone repo with submodules
 RUN git clone --recurse-submodules https://github.com/mendableai/firecrawl .
 
-# Main build stage
+# Stage 2: Go build
+FROM golang:1.21 AS go-builder
+COPY --from=base /app/apps/api/sharedLibs/go-html-to-md /app/sharedLibs/go-html-to-md
+WORKDIR /app/sharedLibs/go-html-to-md
+RUN go mod tidy && \
+    go build -o html-to-markdown.so -buildmode=c-shared html-to-markdown.go
+
+# Stage 3: Rust build
+FROM rust:1-slim AS rust-builder
+COPY --from=base /app/apps/api/sharedLibs/html-transformer /app/sharedLibs/html-transformer
+WORKDIR /app/sharedLibs/html-transformer
+RUN cargo build --release
+
+# Stage 4: Node.js build
 FROM base AS build
-WORKDIR /app/apps/api  # Critical fix
+WORKDIR /app/apps/api
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install && \
     pnpm run build
 
-# Final image
+# Stage 5: Final production image
 FROM node:22-slim
 WORKDIR /app
 
