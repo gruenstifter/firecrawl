@@ -1,20 +1,58 @@
 version: '3.8'
 
 services:
-  firecrawl-api:
-    build: 
-      context: .
-      dockerfile: apps/api/Dockerfile-coolify
-    environment:
-      - REDIS_URL=redis://dragonfly:6379
-      - PLAYWRIGHT_MICROSERVICE_URL=http://playwright-service:3000/html
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly
+    command: ["--requirepass=${DRAGONFLY_PASSWORD}"]
+    volumes:
+      - dragonfly-data:/data
     networks:
       - coolify
 
-  playwright-service:
-    build: apps/playwright-service-ts
+  firecrawl-api:
+    build:
+      context: apps/api  # Critical change - build from api directory
+      dockerfile: Dockerfile-coolify
+    environment:
+      - PORT=3002
+      - REDIS_URL=redis://dragonfly:6379
+      - REDIS_RATE_LIMIT_URL=redis://dragonfly:6379
+      - PLAYWRIGHT_MICROSERVICE_URL=http://playwright-service:3000/html
+      - NUM_WORKERS_PER_QUEUE=8
+      - BULL_AUTH_KEY=${BULL_AUTH_KEY}
     networks:
       - coolify
+    depends_on:
+      - dragonfly
+      - playwright-service
+
+  firecrawl-worker:
+    build:
+      context: apps/api  # Same as API service
+      dockerfile: Dockerfile-coolify
+    environment:
+      - REDIS_URL=redis://dragonfly:6379
+      - REDIS_RATE_LIMIT_URL=redis://dragonfly:6379
+      - PLAYWRIGHT_MICROSERVICE_URL=http://playwright-service:3000/html
+    networks:
+      - coolify
+    depends_on:
+      - firecrawl-api
+
+  playwright-service:
+    build: 
+      context: apps/playwright-service-ts
+    environment:
+      - PORT=3000
+      - HEADLESS=true
+    networks:
+      - coolify
+    volumes:
+      - playwright-storage:/ms-playwright
+
+volumes:
+  dragonfly-data:
+  playwright-storage:
 
 networks:
   coolify:
