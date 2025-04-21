@@ -11,8 +11,8 @@ services:
 
   firecrawl-api:
     build:
-      context: apps/api  # Critical change - build from api directory
-      dockerfile: Dockerfile-coolify
+      context: .  # Build from repo root
+      dockerfile: apps/api/Dockerfile-coolify
     environment:
       - PORT=3002
       - REDIS_URL=redis://dragonfly:6379

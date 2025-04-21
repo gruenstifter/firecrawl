@@ -27,13 +27,14 @@ RUN go mod tidy && \
     go build -o html-to-markdown.so -buildmode=c-shared html-to-markdown.go
 
 # Rust build stage
-FROM rust:1-slim AS rust-builder 
+FROM rust:1-slim AS rust-builder
 COPY --from=base /app/apps/api/sharedLibs/html-transformer /app/sharedLibs/html-transformer
 WORKDIR /app/sharedLibs/html-transformer
 RUN cargo build --release
 
 # Main build stage
 FROM base AS build
+WORKDIR /app/apps/api  # Critical change - navigate to package root
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install && \
     pnpm run build
