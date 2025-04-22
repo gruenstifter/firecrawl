@@ -51,7 +51,7 @@ COPY --from=go-builder /app/sharedLibs/go-html-to-md/html-to-markdown.so ./share
 COPY --from=rust-builder /app/sharedLibs/html-transformer/target/release/libhtml_transformer.so ./sharedLibs/html-transformer/
 
 # Copy entrypoint script
-COPY apps/api/docker-entrypoint.sh /app/docker-entrypoint.sh
+COPY --from=base /app/apps/api/docker-entrypoint.sh /app/docker-entrypoint.sh
 
 # Runtime dependencies
 RUN apt-get update && \
