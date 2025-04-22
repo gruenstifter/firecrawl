@@ -5,8 +5,9 @@ services:
     image: docker.dragonflydb.io/dragonflydb/dragonfly
     command: 
       - "--requirepass=${DRAGONFLY_PASSWORD}"
-      - "--default_lua_flags=allow-undeclared-keys"  # Critical for BullMQ compatibility
-      - "--lock_on_hashtags"  # Improves performance with BullMQ
+      - "--default_lua_flags=allow-undeclared-keys"
+      - "--lock_on_hashtags"
+      - "--cluster_mode=emulated"
     volumes:
       - dragonfly-data:/data
     networks:
@@ -25,6 +26,9 @@ services:
       - NUM_WORKERS_PER_QUEUE=8
       - BULL_AUTH_KEY=${BULL_AUTH_KEY}
       - BULL_PREFIX_QUEUE="{scrapeQueue}"  # Enables hashtag grouping
+      - JOB_TIMEOUT=120000  # 120 seconds
+      - REQUEST_TIMEOUT=90000  # 90 seconds
+
     networks:
       - coolify
     ports:
@@ -41,6 +45,7 @@ services:
       - REDIS_URL=redis://:${DRAGONFLY_PASSWORD}@dragonfly:6379
       - REDIS_RATE_LIMIT_URL=redis://:${DRAGONFLY_PASSWORD}@dragonfly:6379
       - PLAYWRIGHT_MICROSERVICE_URL=http://playwright-service:3000/html
+      - WORKER_TIMEOUT=180000  # 3 minutes
     networks:
       - coolify
       
@@ -65,5 +70,6 @@ volumes:
 networks:
   coolify:
     external: true
+    attachable: true
   public:
     driver: bridge
