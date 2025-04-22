@@ -36,7 +36,9 @@ RUN cargo build --release
 # Stage 4: Node.js build
 FROM base AS build
 WORKDIR /app/apps/api
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+RUN corepack enable && \
+    pnpm install -g pnpm && \
+    --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install && \
     pnpm run build
 
@@ -49,7 +51,6 @@ COPY --from=build /app/apps/api/dist ./dist
 COPY --from=build /app/apps/api/node_modules ./node_modules
 COPY --from=go-builder /app/sharedLibs/go-html-to-md/html-to-markdown.so ./sharedLibs/go-html-to-md/
 COPY --from=rust-builder /app/sharedLibs/html-transformer/target/release/libhtml_transformer.so ./sharedLibs/html-transformer/
-COPY --from=base /pnpm /pnpm
 
 # Copy entrypoint script
 COPY apps/api/docker-entrypoint.sh /app/docker-entrypoint.sh
