@@ -37,7 +37,7 @@ RUN cargo build --release
 FROM base AS build
 WORKDIR /app/apps/api
 RUN corepack enable && \
-    pnpm install -g pnpm && \
+    pnpm self-update && \
     --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install && \
     pnpm run build
