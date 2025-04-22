@@ -3,7 +3,10 @@ version: '3.8'
 services:
   dragonfly:
     image: docker.dragonflydb.io/dragonflydb/dragonfly
-    command: ["--requirepass=${DRAGONFLY_PASSWORD}"]
+    command: 
+      - "--requirepass=${DRAGONFLY_PASSWORD}"
+      - "--default_lua_flags=allow-undeclared-keys"  # Critical for BullMQ compatibility
+      - "--lock_on_hashtags"  # Improves performance with BullMQ
     volumes:
       - dragonfly-data:/data
     networks:
@@ -21,6 +24,7 @@ services:
       - PLAYWRIGHT_MICROSERVICE_URL=http://playwright-service:3000/html
       - NUM_WORKERS_PER_QUEUE=8
       - BULL_AUTH_KEY=${BULL_AUTH_KEY}
+      - BULL_PREFIX_QUEUE="{scrapeQueue}"  # Enables hashtag grouping
     networks:
       - coolify
     ports:
