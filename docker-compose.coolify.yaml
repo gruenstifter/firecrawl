@@ -8,6 +8,7 @@ services:
       - dragonfly-data:/data
     networks:
       - coolify
+      - public
 
   firecrawl-api:
     build:
@@ -22,6 +23,8 @@ services:
       - BULL_AUTH_KEY=${BULL_AUTH_KEY}
     networks:
       - coolify
+    ports:
+      - "3002:3002"
     depends_on:
       - dragonfly
       - playwright-service
@@ -36,6 +39,7 @@ services:
       - PLAYWRIGHT_MICROSERVICE_URL=http://playwright-service:3000/html
     networks:
       - coolify
+      
     depends_on:
       - firecrawl-api
 
@@ -57,3 +61,5 @@ volumes:
 networks:
   coolify:
     external: true
+  public:
+    driver: bridge
