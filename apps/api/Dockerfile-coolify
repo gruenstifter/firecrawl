@@ -49,6 +49,10 @@ COPY --from=build /app/apps/api/dist ./dist
 COPY --from=build /app/apps/api/node_modules ./node_modules
 COPY --from=go-builder /app/sharedLibs/go-html-to-md/html-to-markdown.so ./sharedLibs/go-html-to-md/
 COPY --from=rust-builder /app/sharedLibs/html-transformer/target/release/libhtml_transformer.so ./sharedLibs/html-transformer/
+COPY --from=base /pnpm /pnpm
+
+# Copy entrypoint script
+COPY apps/api/docker-entrypoint.sh /app/docker-entrypoint.sh
 
 # Runtime dependencies
 RUN apt-get update && \
@@ -56,8 +60,11 @@ RUN apt-get update && \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+# Make sure the entrypoint script has the correct line endings
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh
+
 EXPOSE 3002
 ENV PORT=3002
 ENV NODE_ENV=production
 
-CMD ["pnpm", "run", "start:production"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
