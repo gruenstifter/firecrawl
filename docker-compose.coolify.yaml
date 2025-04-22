@@ -16,8 +16,8 @@ services:
       dockerfile: apps/api/Dockerfile-coolify
     environment:
       - PORT=3002
-      - REDIS_URL=redis://dragonfly:6379
-      - REDIS_RATE_LIMIT_URL=redis://dragonfly:6379
+      - REDIS_URL=redis://:${DRAGONFLY_PASSWORD}@dragonfly:6379
+      - REDIS_RATE_LIMIT_URL=redis://:${DRAGONFLY_PASSWORD}@dragonfly:6379
       - PLAYWRIGHT_MICROSERVICE_URL=http://playwright-service:3000/html
       - NUM_WORKERS_PER_QUEUE=8
       - BULL_AUTH_KEY=${BULL_AUTH_KEY}
@@ -34,8 +34,8 @@ services:
       context: apps/api  # Same as API service
       dockerfile: Dockerfile-coolify
     environment:
-      - REDIS_URL=redis://dragonfly:6379
-      - REDIS_RATE_LIMIT_URL=redis://dragonfly:6379
+      - REDIS_URL=redis://:${DRAGONFLY_PASSWORD}@dragonfly:6379
+      - REDIS_RATE_LIMIT_URL=redis://:${DRAGONFLY_PASSWORD}@dragonfly:6379
       - PLAYWRIGHT_MICROSERVICE_URL=http://playwright-service:3000/html
     networks:
       - coolify
