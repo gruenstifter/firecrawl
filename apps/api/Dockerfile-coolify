@@ -36,9 +36,7 @@ RUN cargo build --release
 # Stage 4: Node.js build
 FROM base AS build
 WORKDIR /app/apps/api
-RUN corepack enable && \
-    pnpm self-update && \
-    --mount=type=cache,id=pnpm,target=/pnpm/store \
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install && \
     pnpm run build
 
